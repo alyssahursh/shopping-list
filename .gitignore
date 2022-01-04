@@ -1,0 +1,6 @@
+/node_modules
+/.airtableblocksrc.json
+/build
+.block
+.eslintrc.js
+package.json
