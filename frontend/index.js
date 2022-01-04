@@ -21,11 +21,11 @@ function TodoApp() {
         .filter(ingredient => ingredient.getCellValue("Refill when empty") == true)
         .map(ingredient => ingredient.name);
         
-    console.log(missingPantryItems);
-
     const finalShoppingList = tentativeShoppingList.filter(item => !ingredientsOnHand.includes(item)).concat(missingPantryItems).unique();
 
-    const list = finalShoppingList.map(item => {
+    const possibleMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Ingredients").flatMap(ingredient => ingredient.name).every(ingredient => ingredientsOnHand.includes(ingredient))).map(mealIdea => mealIdea.name);
+
+    const list = finalShoppingList.concat(possibleMeals).map(item => {
         return (
             <div key={item.id}>
                 {item}
