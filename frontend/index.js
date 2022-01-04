@@ -9,51 +9,62 @@ function TodoApp() {
     const mealIdeas = useRecords(base.getTableByName('Meal Ideas'));
     const ingredients = useRecords(base.getTableByName('Ingredients'));
 
-    const tentativeShoppingList = mealIdeas.filter(record => record.getCellValue("Plan") == true)
+    const tentativeShoppingList = [...new Set(mealIdeas.filter(record => record.getCellValue("Plan") == true)
         .flatMap(record => record.getCellValue("Ingredients")
-        .map(item => item.name))
-        .unique();
+        .map(item => item.name)))]
 
-    const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true)
-        .map(ingredient => ingredient.name);
+    const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
 
-    const missingPantryItems = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == null)
-        .filter(ingredient => ingredient.getCellValue("Refill when empty") == true)
+    const missingPantryItems = ingredientsOnHand.filter(ingredient => ingredient.getCellValue("Refill when empty") == true)
         .map(ingredient => ingredient.name);
         
-    const finalShoppingList = tentativeShoppingList.filter(item => !ingredientsOnHand.includes(item)).concat(missingPantryItems).unique();
+    const finalShoppingList = [...new Set(tentativeShoppingList.filter(item => !ingredientsOnHand.map(ingredient => ingredient.name).includes(item)).concat(missingPantryItems))];
 
-    const possibleMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Ingredients").flatMap(ingredient => ingredient.name).every(ingredient => ingredientsOnHand.includes(ingredient))).map(mealIdea => mealIdea.name);
+    const categorizedShoppingList = categorizeShoppingList(finalShoppingList, ingredients);
 
-    const list = finalShoppingList.concat(possibleMeals).map(item => {
-        return (
-            <div key={item.id}>
-                {item}
-            </div>
-        );
-    });
+    const possibleMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Ingredients").flatMap(ingredient => ingredient.name).every(ingredient => ingredientsOnHand.map(ingredient => ingredient.name).includes(ingredient))).map(mealIdea => mealIdea.name);
 
     return (
-        <div>{list}</div>
+        <div>{convertCategorizedListToFrontend(categorizedShoppingList)}</div>
     );
 }
 
 initializeBlock(() => <TodoApp />);
 
-Array.prototype.unique = function() {
-    let arr = [];
-    for(let i = 0; i < this.length; i++) {
-        if(!arr.includes(this[i])) {
-            arr.push(this[i]);
+function categorizeShoppingList(shoppingList, ingredients) {
+    const categorizedList = {};
+    for (let x in shoppingList) {
+        const item = shoppingList[x]
+        const category = ingredients.find(ingredient => ingredient.name == item).getCellValue("Category").name;
+        if (categorizedList[category] == null) {
+            categorizedList[category] = [item];
+        } else {
+            const existingValues = categorizedList[category];
+            existingValues.push(item);
+            categorizedList[category] = existingValues;
         }
     }
-    return arr; 
-  }
+    return categorizedList;
+}
 
-// TODO: Something else
+function convertCategorizedListToFrontend(categorizedList) {
+    return Object.keys(categorizedList).map(category => {
+        return (
+            <div key={category.id}>
+                <h3>{category}</h3>
+                <ul>{categorizedList[category].map(item => {
+                    return (
+                        <li key={item.id}>
+                            {item}
+                        </li>
+                    );
+                })}</ul>
+            </div>
+        );
+    });
+}
+
 // TODO: Organize list by category
 // TODO: Organize list by aisle of the grocery store?
-// TODO: What can you make with what you have on hand?
 // TODO: Add meal ideas from friends
 // TODO: Add instructions for meals
-// TODO: Refill when empty checkmark for ingredients
