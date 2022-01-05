@@ -10,20 +10,15 @@ function TodoApp() {
     const ingredients = useRecords(base.getTableByName('Ingredients'));
 
     const selectedMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Plan") == true);
-
-    // const possibleMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Ingredients").flatMap(ingredient => ingredient.name).every(ingredient => ingredientsOnHand.map(ingredient => ingredient.name).includes(ingredient))).map(mealIdea => mealIdea.name);
+    const possibleMeals = getPossibleMeals(mealIdeas, ingredients);
+    console.log(possibleMeals);
 
     return (
         <div>
+            <h2>Meals you can make with what you have on hand</h2>
+            {getListDisplay(possibleMeals)}
             <h2>Selected Meals</h2>
-            <ul>{selectedMeals.map(meal => meal.name).map(meal => {
-                    return (
-                        <li key={meal.id}>
-                            {meal}
-                        </li>
-                    );
-                })}
-            </ul>
+            {getListDisplay(selectedMeals)}
             <h2>Shopping List</h2>
             <div>{convertCategorizedListToFrontend(getShoppingList(selectedMeals, ingredients))}</div>
         </div>
@@ -31,6 +26,15 @@ function TodoApp() {
 }
 
 initializeBlock(() => <TodoApp />);
+
+function getPossibleMeals(mealIdeas, ingredients) {
+    const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
+    return mealIdeas.filter(mealIdea => mealIdea.getCellValue("Ingredients")
+        .flatMap(ingredient => ingredient.name)
+        .every(ingredient => ingredientsOnHand.map(ingredient => ingredient.name)
+        .includes(ingredient)));
+
+}
 
 function getShoppingList(selectedMeals, ingredients) {
     const tentativeShoppingList = [...new Set(selectedMeals.flatMap(record => record.getCellValue("Ingredients")
@@ -71,6 +75,16 @@ function convertCategorizedListToFrontend(categorizedList) {
             </div>
         );
     });
+}
+
+function getListDisplay(list) {
+    return <ul>{list.map(item => item.name).map(item => {
+        return (
+            <li key={item.id}>
+                {item}
+            </li>
+        );
+    })}</ul>
 }
 
 // TODO: Organize list by category
