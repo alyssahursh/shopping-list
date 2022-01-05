@@ -8,7 +8,6 @@ function TodoApp() {
     const base = useBase();
     const mealIdeas = useRecords(base.getTableByName('Meal Ideas'));
     const ingredients = useRecords(base.getTableByName('Ingredients'));
-    const maxMissingIngredients = 2;
 
     const selectedMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Plan") == true);
     const possibleMeals = getPossibleMeals(mealIdeas, ingredients);
@@ -18,8 +17,8 @@ function TodoApp() {
         <div>
             <h2>Meals you can make with what you have on hand</h2>
             {getListDisplay(possibleMeals)}
-            <h2>Meals you can make if you buy {maxMissingIngredients} ingredients</h2>
-            {getNestedListDisplay(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients, maxMissingIngredients))}
+            <h2>Meals you can make if you buy one ingredient</h2>
+            <ul>{getMissingIngredientDisplay(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients))}</ul>
             <h2>Selected Meals</h2>
             {getListDisplay(selectedMeals.map(meal => meal.name))}
             <h2>Shopping List</h2>
@@ -38,7 +37,7 @@ function getPossibleMeals(mealIdeas, ingredients) {
         .map(mealIdea => mealIdea.name);
 }
 
-function getPossibleMealsWithMissingIngredients(mealIdeas, ingredients, maxMissingIngredients) {
+function getPossibleMealsWithMissingIngredients(mealIdeas, ingredients) {
     const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
     return mealIdeas.reduce((mapOfMealsToMissingIngredients, currentMeal) => {
         const missingIngredients = currentMeal.getCellValue("Ingredients")
@@ -49,14 +48,11 @@ function getPossibleMealsWithMissingIngredients(mealIdeas, ingredients, maxMissi
                 }
                 return missingIngredients;
             }, []);
-        if (missingIngredients.length !== 0 & missingIngredients.length <= maxMissingIngredients) {
+        if (missingIngredients.length == 1) {
             mapOfMealsToMissingIngredients[currentMeal.name] = missingIngredients;
         }
         return mapOfMealsToMissingIngredients;
     }, {});
-    
-
-
 }
 
 function getShoppingList(selectedMeals, ingredients) {
@@ -82,6 +78,14 @@ function categorizeShoppingList(shoppingList, ingredients) {
         ];
         return categorizedList;
     }, {})
+}
+
+function getMissingIngredientDisplay(recipesWithMissingIngredients) {
+    return Object.keys(recipesWithMissingIngredients).map(recipe => {
+        return (
+            <li><b>{recipe}:</b> {recipesWithMissingIngredients[recipe]}</li>
+        );
+    });
 }
 
 function getNestedListDisplay(categorizedList) {
