@@ -11,7 +11,6 @@ function TodoApp() {
 
     const selectedMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Plan") == true);
     const possibleMeals = getPossibleMeals(mealIdeas, ingredients);
-    console.log(possibleMeals);
 
     return (
         <div>
@@ -20,7 +19,7 @@ function TodoApp() {
             <h2>Selected Meals</h2>
             {getListDisplay(selectedMeals.map(meal => meal.name))}
             <h2>Shopping List</h2>
-            <div>{convertCategorizedListToFrontend(getShoppingList(selectedMeals, ingredients))}</div>
+            {convertCategorizedListToFrontend(getShoppingList(selectedMeals, ingredients))}
         </div>
     );
 }
@@ -66,13 +65,7 @@ function convertCategorizedListToFrontend(categorizedList) {
         return (
             <div key={category.id}>
                 <h3>{category}</h3>
-                <ul>{categorizedList[category].map(item => {
-                    return (
-                        <li key={item.id}>
-                            {item}
-                        </li>
-                    );
-                })}</ul>
+                {getListDisplay(categorizedList[category])}
             </div>
         );
     });
