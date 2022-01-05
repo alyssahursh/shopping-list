@@ -19,9 +19,9 @@ function TodoApp() {
             {getListDisplay(possibleMeals)}
             <h2>Meals you can make if you buy one ingredient</h2>
             <ul>{getMissingIngredientDisplay(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients))}</ul>
-            <h2>Selected Meals</h2>
+            <h2>Meals you've selected to generate your shopping list</h2>
             {getListDisplay(selectedMeals.map(meal => meal.name))}
-            <h2>Shopping List</h2>
+            <h2>Shopping list based on meal selection and missing pantry items</h2>
             {getNestedListDisplay(getShoppingList(selectedMeals, ingredients))}
         </div>
     );
