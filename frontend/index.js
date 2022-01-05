@@ -9,6 +9,8 @@ function TodoApp() {
     const mealIdeas = useRecords(base.getTableByName('Meal Ideas'));
     const ingredients = useRecords(base.getTableByName('Ingredients'));
 
+    const selectedMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Plan") == true);
+    
     const tentativeShoppingList = [...new Set(mealIdeas.filter(record => record.getCellValue("Plan") == true)
         .flatMap(record => record.getCellValue("Ingredients")
         .map(item => item.name)))]
@@ -25,7 +27,19 @@ function TodoApp() {
     const possibleMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Ingredients").flatMap(ingredient => ingredient.name).every(ingredient => ingredientsOnHand.map(ingredient => ingredient.name).includes(ingredient))).map(mealIdea => mealIdea.name);
 
     return (
-        <div>{convertCategorizedListToFrontend(categorizedShoppingList)}</div>
+        <div>
+            <h2>Selected Meals</h2>
+            <ul>{selectedMeals.map(meal => meal.name).map(meal => {
+                    return (
+                        <li key={meal.id}>
+                            {meal}
+                        </li>
+                    );
+                })}
+            </ul>
+            <h2>Shopping List</h2>
+            <div>{convertCategorizedListToFrontend(categorizedShoppingList)}</div>
+        </div>
     );
 }
 
