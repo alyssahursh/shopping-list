@@ -19,7 +19,7 @@ function TodoApp() {
             <h2>Selected Meals</h2>
             {getListDisplay(selectedMeals.map(meal => meal.name))}
             <h2>Shopping List</h2>
-            {convertCategorizedListToFrontend(getShoppingList(selectedMeals, ingredients))}
+            {getNestedListDisplay(getShoppingList(selectedMeals, ingredients))}
         </div>
     );
 }
@@ -60,7 +60,7 @@ function categorizeShoppingList(shoppingList, ingredients) {
     }, {})
 }
 
-function convertCategorizedListToFrontend(categorizedList) {
+function getNestedListDisplay(categorizedList) {
     return Object.keys(categorizedList).map(category => {
         return (
             <div key={category.id}>
