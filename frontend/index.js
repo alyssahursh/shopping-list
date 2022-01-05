@@ -10,7 +10,7 @@ function TodoApp() {
     const ingredients = useRecords(base.getTableByName('Ingredients'));
 
     const selectedMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Plan") == true);
-    
+
     const tentativeShoppingList = [...new Set(mealIdeas.filter(record => record.getCellValue("Plan") == true)
         .flatMap(record => record.getCellValue("Ingredients")
         .map(item => item.name)))]
@@ -46,19 +46,13 @@ function TodoApp() {
 initializeBlock(() => <TodoApp />);
 
 function categorizeShoppingList(shoppingList, ingredients) {
-    const categorizedList = {};
-    for (let x in shoppingList) {
-        const item = shoppingList[x]
-        const category = ingredients.find(ingredient => ingredient.name == item).getCellValue("Category").name;
-        if (categorizedList[category] == null) {
-            categorizedList[category] = [item];
-        } else {
-            const existingValues = categorizedList[category];
-            existingValues.push(item);
-            categorizedList[category] = existingValues;
-        }
-    }
-    return categorizedList;
+    return shoppingList.reduce((categorizedList, currentValue) => {
+        const category = ingredients.find(ingredient => ingredient.name === currentValue).getCellValue("Category").name;
+        categorizedList[category] = [
+            currentValue, ...(categorizedList[category] || [])
+        ];
+        return categorizedList;
+    }, {})
 }
 
 function convertCategorizedListToFrontend(categorizedList) {
