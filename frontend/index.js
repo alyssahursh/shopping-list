@@ -18,7 +18,7 @@ function TodoApp() {
             <h2>Meals you can make with what you have on hand</h2>
             {getListDisplay(possibleMeals)}
             <h2>Selected Meals</h2>
-            {getListDisplay(selectedMeals)}
+            {getListDisplay(selectedMeals.map(meal => meal.name))}
             <h2>Shopping List</h2>
             <div>{convertCategorizedListToFrontend(getShoppingList(selectedMeals, ingredients))}</div>
         </div>
@@ -32,7 +32,8 @@ function getPossibleMeals(mealIdeas, ingredients) {
     return mealIdeas.filter(mealIdea => mealIdea.getCellValue("Ingredients")
         .flatMap(ingredient => ingredient.name)
         .every(ingredient => ingredientsOnHand.map(ingredient => ingredient.name)
-        .includes(ingredient)));
+        .includes(ingredient)))
+        .map(mealIdea => mealIdea.name);
 
 }
 
@@ -78,7 +79,7 @@ function convertCategorizedListToFrontend(categorizedList) {
 }
 
 function getListDisplay(list) {
-    return <ul>{list.map(item => item.name).map(item => {
+    return <ul>{list.map(item => {
         return (
             <li key={item.id}>
                 {item}
