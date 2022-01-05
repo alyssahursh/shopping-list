@@ -8,14 +8,18 @@ function TodoApp() {
     const base = useBase();
     const mealIdeas = useRecords(base.getTableByName('Meal Ideas'));
     const ingredients = useRecords(base.getTableByName('Ingredients'));
+    const maxMissingIngredients = 2;
 
     const selectedMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Plan") == true);
     const possibleMeals = getPossibleMeals(mealIdeas, ingredients);
+    console.log(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients, 2));
 
     return (
         <div>
             <h2>Meals you can make with what you have on hand</h2>
             {getListDisplay(possibleMeals)}
+            <h2>Meals you can make if you buy {maxMissingIngredients} ingredients</h2>
+            {getNestedListDisplay(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients, maxMissingIngredients))}
             <h2>Selected Meals</h2>
             {getListDisplay(selectedMeals.map(meal => meal.name))}
             <h2>Shopping List</h2>
@@ -29,10 +33,29 @@ initializeBlock(() => <TodoApp />);
 function getPossibleMeals(mealIdeas, ingredients) {
     const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
     return mealIdeas.filter(mealIdea => mealIdea.getCellValue("Ingredients")
-        .flatMap(ingredient => ingredient.name)
-        .every(ingredient => ingredientsOnHand.map(ingredient => ingredient.name)
-        .includes(ingredient)))
+        .map(ingredient => ingredient.name)
+        .every(ingredient => ingredientsOnHand.map(ingredient => ingredient.name).includes(ingredient)))
         .map(mealIdea => mealIdea.name);
+}
+
+function getPossibleMealsWithMissingIngredients(mealIdeas, ingredients, maxMissingIngredients) {
+    const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
+    return mealIdeas.reduce((mapOfMealsToMissingIngredients, currentMeal) => {
+        const missingIngredients = currentMeal.getCellValue("Ingredients")
+            .map(ingredient => ingredient.name)
+            .reduce((missingIngredients, currentIngredient) => {
+                if (!ingredientsOnHand.map(ingredient => ingredient.name).includes(currentIngredient)) {
+                    missingIngredients.push(currentIngredient);
+                }
+                return missingIngredients;
+            }, []);
+        if (missingIngredients.length !== 0 & missingIngredients.length <= maxMissingIngredients) {
+            mapOfMealsToMissingIngredients[currentMeal.name] = missingIngredients;
+        }
+        return mapOfMealsToMissingIngredients;
+    }, {});
+    
+
 
 }
 
@@ -42,8 +65,9 @@ function getShoppingList(selectedMeals, ingredients) {
 
     const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
 
-    const missingPantryItems = ingredientsOnHand.filter(ingredient => ingredient.getCellValue("Refill when empty") == true)
-        .map(ingredient => ingredient.name);
+    const missingPantryItems = ingredients.filter(pantryItem => pantryItem.getCellValue("Refill when empty") == true)
+        .filter(pantryItem => pantryItem.getCellValue("On hand") !== true)
+        .map(pantryItem => pantryItem.name);
 
     const finalShoppingList = [...new Set(tentativeShoppingList.filter(item => !ingredientsOnHand.map(ingredient => ingredient.name).includes(item)).concat(missingPantryItems))];
 
@@ -81,7 +105,8 @@ function getListDisplay(list) {
     })}</ul>
 }
 
-// TODO: Organize list by category
 // TODO: Organize list by aisle of the grocery store?
 // TODO: Add meal ideas from friends
 // TODO: Add instructions for meals
+// TODO: We're going to need some null safety! null check for no category
+// TODO: Add meals where you could make it if you had one more ingredient
