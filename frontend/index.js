@@ -11,20 +11,7 @@ function TodoApp() {
 
     const selectedMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Plan") == true);
 
-    const tentativeShoppingList = [...new Set(mealIdeas.filter(record => record.getCellValue("Plan") == true)
-        .flatMap(record => record.getCellValue("Ingredients")
-        .map(item => item.name)))]
-
-    const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
-
-    const missingPantryItems = ingredientsOnHand.filter(ingredient => ingredient.getCellValue("Refill when empty") == true)
-        .map(ingredient => ingredient.name);
-        
-    const finalShoppingList = [...new Set(tentativeShoppingList.filter(item => !ingredientsOnHand.map(ingredient => ingredient.name).includes(item)).concat(missingPantryItems))];
-
-    const categorizedShoppingList = categorizeShoppingList(finalShoppingList, ingredients);
-
-    const possibleMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Ingredients").flatMap(ingredient => ingredient.name).every(ingredient => ingredientsOnHand.map(ingredient => ingredient.name).includes(ingredient))).map(mealIdea => mealIdea.name);
+    // const possibleMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Ingredients").flatMap(ingredient => ingredient.name).every(ingredient => ingredientsOnHand.map(ingredient => ingredient.name).includes(ingredient))).map(mealIdea => mealIdea.name);
 
     return (
         <div>
@@ -38,12 +25,26 @@ function TodoApp() {
                 })}
             </ul>
             <h2>Shopping List</h2>
-            <div>{convertCategorizedListToFrontend(categorizedShoppingList)}</div>
+            <div>{convertCategorizedListToFrontend(getShoppingList(selectedMeals, ingredients))}</div>
         </div>
     );
 }
 
 initializeBlock(() => <TodoApp />);
+
+function getShoppingList(selectedMeals, ingredients) {
+    const tentativeShoppingList = [...new Set(selectedMeals.flatMap(record => record.getCellValue("Ingredients")
+        .map(item => item.name)))]
+
+    const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
+
+    const missingPantryItems = ingredientsOnHand.filter(ingredient => ingredient.getCellValue("Refill when empty") == true)
+        .map(ingredient => ingredient.name);
+
+    const finalShoppingList = [...new Set(tentativeShoppingList.filter(item => !ingredientsOnHand.map(ingredient => ingredient.name).includes(item)).concat(missingPantryItems))];
+
+    return categorizeShoppingList(finalShoppingList, ingredients);
+}
 
 function categorizeShoppingList(shoppingList, ingredients) {
     return shoppingList.reduce((categorizedList, currentValue) => {
