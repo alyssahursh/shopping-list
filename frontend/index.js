@@ -38,16 +38,11 @@ function getPossibleMeals(mealIdeas, ingredients) {
 }
 
 function getPossibleMealsWithMissingIngredients(mealIdeas, ingredients) {
-    const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
+    const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true).map(ingredient => ingredient.name);
     return mealIdeas.reduce((mapOfMealsToMissingIngredients, currentMeal) => {
         const missingIngredients = currentMeal.getCellValue("Ingredients")
             .map(ingredient => ingredient.name)
-            .reduce((missingIngredients, currentIngredient) => {
-                if (!ingredientsOnHand.map(ingredient => ingredient.name).includes(currentIngredient)) {
-                    missingIngredients.push(currentIngredient);
-                }
-                return missingIngredients;
-            }, []);
+            .filter(ingredientName => !ingredientsOnHand.includes(ingredientName))
         if (missingIngredients.length == 1) {
             mapOfMealsToMissingIngredients[currentMeal.name] = missingIngredients;
         }
