@@ -25,12 +25,28 @@ function TodoApp() {
         return <Item key={ingredient.id} record={ingredient} onToggle={toggle} completedFieldId={completedFieldId}/>;
     }) : null;
 
-
+    const getCategorizedList = (selectedMeals, ingredients) => {
+        const shoppingList = getShoppingList(selectedMeals, ingredients);
+        const categorizedList = categorizeShoppingList(shoppingList);
+        let itemList = [];
+        Object.entries(categorizedList).sort((a,b) => a[0] > b[0]).forEach(([key, value]) => {
+            console.log(key);
+            console.log(value.map(item => item.name));
+            itemList.push( <Category category={key}/> );
+            const ingredientsList = value.sort((a,b) => a.name > b.name).map(ingredient => {
+                return <Item key={ingredient.id} record={ingredient} onToggle={toggle} completedFieldId={completedFieldId}/>;
+            })
+            itemList.push(ingredientsList);
+        });
+        return itemList;
+    };
 
     return (
         <div>
-            <div>{shoppingList}</div>
+            <div>{getCategorizedList(selectedMeals, ingredients)}</div>
+
         </div>
+        //
         //
         // <div>
         //     <h2>Meals you can make with what you have on hand</h2>
@@ -46,7 +62,6 @@ function TodoApp() {
 }
 
 initializeBlock(() => <TodoApp />);
-
 
 function getPossibleMeals(mealIdeas, ingredients) {
     const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
@@ -84,7 +99,7 @@ function getShoppingList(selectedMeals, ingredients) {
 
 function categorizeShoppingList(shoppingList) {
     return shoppingList.reduce((categorizedList, currentValue) => {
-        const category = currentValue.getCellValue("Category").name ?? 'Uncategorized ingredient';
+        const category = currentValue.getCellValue("Category") == null ? 'Uncategorized ingredient' : currentValue.getCellValue("Category").name;
         categorizedList[category] = [
             currentValue, ...(categorizedList[category] || [])
         ];
@@ -121,6 +136,23 @@ function getListDisplay(list) {
     })}</ul>
 }
 
+function Category({category}) {
+    console.log("hi category")
+    return (
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: 16,
+                padding: 8,
+                fontWeight: 'bold',
+            }}
+        >
+            {category}
+        </div>
+    );
+}
 
 
 function Item({record, onToggle, completedFieldId}) {
@@ -130,33 +162,39 @@ function Item({record, onToggle, completedFieldId}) {
             style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                fontSize: 12,
-                padding: 2,
+                padding: 1,
+                marginLeft: 20,
             }}
         >
             <TextButton
                 variant="dark"
-                size="xlarge"
+                size='large'
                 onClick={() => {
                     onToggle(record);
                 }}
             >
                 {record.getCellValue(completedFieldId) ? <s>{label}</s> : label}
             </TextButton>
+            <div
+                style={{
+                    paddingTop: 4,
+                    marginLeft: 5,
+                }}
+            >
             <TextButton
                 icon="expand"
                 aria-label="Expand record"
-                variant="dark"
                 onClick={() => {
                     expandRecord(record);
                 }}
             />
+            </div>
         </div>
 
     );
 
 }
+
 
 
 // TODO: Organize list by aisle of the grocery store?
