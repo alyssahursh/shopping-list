@@ -43,6 +43,7 @@ function TodoApp() {
 
     return (
         <div>
+            <Section title="Shopping List"/>
             <div>{getCategorizedList(selectedMeals, ingredients)}</div>
 
         </div>
@@ -136,8 +137,26 @@ function getListDisplay(list) {
     })}</ul>
 }
 
+function Section({title}) {
+    return (
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: 20,
+                padding: 10,
+                fontWeight: 'bold',
+                borderBottom: '1px solid #ddd',
+                backgroundColor: '#FAFAFA',
+            }}
+        >
+            {title}
+        </div>
+    );
+}
+
 function Category({category}) {
-    console.log("hi category")
     return (
         <div
             style={{
@@ -145,7 +164,8 @@ function Category({category}) {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 fontSize: 16,
-                padding: 8,
+                padding: 7,
+                marginLeft: 5,
                 fontWeight: 'bold',
             }}
         >
@@ -163,7 +183,7 @@ function Item({record, onToggle, completedFieldId}) {
                 display: 'flex',
                 alignItems: 'center',
                 padding: 1,
-                marginLeft: 20,
+                marginLeft: 30,
             }}
         >
             <TextButton
