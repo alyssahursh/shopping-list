@@ -82,9 +82,9 @@ function getShoppingList(selectedMeals, ingredients) {
     return finalShoppingList;
 }
 
-function categorizeShoppingList(shoppingList, ingredients) {
+function categorizeShoppingList(shoppingList) {
     return shoppingList.reduce((categorizedList, currentValue) => {
-        const category = ingredients.find(ingredient => ingredient.name === currentValue).getCellValue("Category").name;
+        const category = currentValue.getCellValue("Category").name ?? 'Uncategorized ingredient';
         categorizedList[category] = [
             currentValue, ...(categorizedList[category] || [])
         ];
