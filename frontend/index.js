@@ -55,14 +55,6 @@ function TodoApp() {
             <Section title="Planned Meals" content={getMeals(selectedMeals)}/>
             <Section title="Shopping List" content={getCategorizedShoppingList(selectedMeals, ingredients)}/>
         </div>
-        //
-        //
-        // <div>
-        //     <h2>Meals you can make with what you have on hand</h2>
-        //     {getListDisplay(possibleMeals)}
-        //     <h2>Meals you can make if you buy one ingredient</h2>
-        //     <ul>{getMissingIngredientDisplay(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients))}</ul>
-        // </div>
     );
 }
 
@@ -109,35 +101,6 @@ function categorizeShoppingList(shoppingList) {
         ];
         return categorizedList;
     }, {})
-}
-
-function getMissingIngredientDisplay(recipesWithMissingIngredients) {
-    return Object.keys(recipesWithMissingIngredients).map(recipe => {
-        return (
-            <li><b>{recipe}:</b> {recipesWithMissingIngredients[recipe]}</li>
-        );
-    });
-}
-
-function getNestedListDisplay(categorizedList) {
-    return Object.keys(categorizedList).map(category => {
-        return (
-            <div key={category.id}>
-                <h3>{category}</h3>
-                {getListDisplay(categorizedList[category])}
-            </div>
-        );
-    });
-}
-
-function getListDisplay(list) {
-    return <ul>{list.map(item => {
-        return (
-            <li key={item.id}>
-                {item}
-            </li>
-        );
-    })}</ul>
 }
 
 function Section({title, content}) {
