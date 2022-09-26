@@ -28,23 +28,21 @@ function TodoApp() {
         );
     };
 
-    const getCategorizedList = (selectedMeals, ingredients) => {
+    const getCategorizedShoppingList = (selectedMeals, ingredients) => {
         const shoppingList = getShoppingList(selectedMeals, ingredients);
         const categorizedList = categorizeShoppingList(shoppingList);
         let itemList = [];
         Object.entries(categorizedList).sort((a,b) => a[0] > b[0]).forEach(([key, value]) => {
-            console.log(key);
-            console.log(value.map(item => item.name));
             itemList.push( <Category category={key}/> );
             const ingredientsList = value.sort((a,b) => a.name > b.name).map(ingredient => {
                 return <Item key={ingredient.id} record={ingredient} onToggle={toggleOnHand} completedFieldId={onHand}/>;
             })
-            itemList.push(ingredientsList);
+            itemList.push(<div style={{padding: 6, marginLeft: 4}}>{ingredientsList}</div>);
         });
         return itemList;
     };
 
-    const getPlannedMeals = (selectedMeals) => {
+    const getMeals = (selectedMeals) => {
         return selectedMeals.map(meal => {
             return <Item key={meal.id} record={meal} onToggle={togglePlannedMeal} completedFieldId={planned}/>;
         })
@@ -52,11 +50,10 @@ function TodoApp() {
 
     return (
         <div>
-            <Section title="Planned Meals"/>
-            <div>{getPlannedMeals(selectedMeals)}</div>
-            <Section title="Shopping List"/>
-            <div>{getCategorizedList(selectedMeals, ingredients)}</div>
-
+            <Section title="Meals You Can Make Now" content={getMeals(possibleMeals)}/>
+            <Section title="Meals That Only Need One Ingredient" content={getMeals(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients))}/>
+            <Section title="Planned Meals" content={getMeals(selectedMeals)}/>
+            <Section title="Shopping List" content={getCategorizedShoppingList(selectedMeals, ingredients)}/>
         </div>
         //
         //
@@ -65,10 +62,6 @@ function TodoApp() {
         //     {getListDisplay(possibleMeals)}
         //     <h2>Meals you can make if you buy one ingredient</h2>
         //     <ul>{getMissingIngredientDisplay(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients))}</ul>
-        //     <h2>Meals you've selected to generate your shopping list</h2>
-        //     {getListDisplay(selectedMeals.map(meal => meal.name))}
-        //     <h2>Shopping list based on meal selection and missing pantry items</h2>
-        //     {getNestedListDisplay(getShoppingList(selectedMeals, ingredients))}
         // </div>
     );
 }
@@ -79,21 +72,20 @@ function getPossibleMeals(mealIdeas, ingredients) {
     const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
     return mealIdeas.filter(mealIdea => mealIdea.getCellValue("Ingredients")
         .map(ingredient => ingredient.name)
-        .every(ingredient => ingredientsOnHand.map(ingredient => ingredient.name).includes(ingredient)))
-        .map(mealIdea => mealIdea.name);
+        .every(ingredient => ingredientsOnHand.map(ingredient => ingredient.name).includes(ingredient))).sort((a,b) => a.name > b.name);
 }
 
 function getPossibleMealsWithMissingIngredients(mealIdeas, ingredients) {
     const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true).map(ingredient => ingredient.name);
-    return mealIdeas.reduce((mapOfMealsToMissingIngredients, currentMeal) => {
+    return mealIdeas.reduce((meals, currentMeal) => {
         const missingIngredients = currentMeal.getCellValue("Ingredients")
             .map(ingredient => ingredient.name)
             .filter(ingredientName => !ingredientsOnHand.includes(ingredientName))
         if (missingIngredients.length == 1) {
-            mapOfMealsToMissingIngredients[currentMeal.name] = missingIngredients;
+            meals.push(currentMeal);
         }
-        return mapOfMealsToMissingIngredients;
-    }, {});
+        return meals.sort((a,b) => a.name > b.name);
+    }, []);
 }
 
 function getShoppingList(selectedMeals, ingredients) {
@@ -148,23 +140,33 @@ function getListDisplay(list) {
     })}</ul>
 }
 
-function Section({title}) {
+function Section({title, content}) {
     return (
-        <div
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                fontSize: 20,
-                padding: 10,
-                fontWeight: 'bold',
-                borderTop: '1px solid #ddd',
-                borderBottom: '1px solid #ddd',
-                backgroundColor: '#FAFAFA',
-            }}
-        >
-            {title}
+        <div>
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: 20,
+                    padding: 10,
+                    fontWeight: 'bold',
+                    borderTop: '1px solid #ddd',
+                    borderBottom: '1px solid #ddd',
+                    backgroundColor: '#FAFAFA',
+                }}
+            >
+                {title}
+            </div>
+            <div
+                style={{
+                    padding: 18,
+                }}
+            >
+                {content}
+            </div>
         </div>
+
     );
 }
 
@@ -176,8 +178,6 @@ function Category({category}) {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 fontSize: 16,
-                padding: 7,
-                marginLeft: 5,
                 fontWeight: 'bold',
             }}
         >
@@ -194,8 +194,7 @@ function Item({record, onToggle, completedFieldId}) {
             style={{
                 display: 'flex',
                 alignItems: 'center',
-                padding: 1,
-                marginLeft: 30,
+                padding: 2,
             }}
         >
             <TextButton
@@ -210,7 +209,7 @@ function Item({record, onToggle, completedFieldId}) {
             <div
                 style={{
                     paddingTop: 4,
-                    marginLeft: 5,
+                    marginLeft: 6,
                 }}
             >
             <TextButton
