@@ -2,32 +2,51 @@ import {
     initializeBlock,
     useBase,
     useRecords,
+    expandRecord,
+    TextButton,
 } from '@airtable/blocks/ui';
 import React from 'react';
 function TodoApp() {
     const base = useBase();
-    const mealIdeas = useRecords(base.getTableByName('Meal Ideas'));
-    const ingredients = useRecords(base.getTableByName('Ingredients'));
+    const mealIdeas = useRecords(base.getTableByNameIfExists('Meal Ideas'));
+    const ingredients = useRecords(base.getTableByNameIfExists('Ingredients'));
+    const completedFieldId = "On hand";
 
     const selectedMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Plan") == true);
     const possibleMeals = getPossibleMeals(mealIdeas, ingredients);
-    console.log(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients, 2));
+
+    const toggle = (record) => {
+        base.getTableByNameIfExists('Ingredients').updateRecordAsync(
+            record, {[completedFieldId]: !record.getCellValue(completedFieldId)}
+        );
+    };
+
+    const ingredients2 = ingredients ? ingredients.map(ingredient => {
+        return <Item key={ingredient.id} record={ingredient} onToggle={toggle} completedFieldId={completedFieldId}/>;
+    }) : null;
+
+
 
     return (
         <div>
-            <h2>Meals you can make with what you have on hand</h2>
-            {getListDisplay(possibleMeals)}
-            <h2>Meals you can make if you buy one ingredient</h2>
-            <ul>{getMissingIngredientDisplay(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients))}</ul>
-            <h2>Meals you've selected to generate your shopping list</h2>
-            {getListDisplay(selectedMeals.map(meal => meal.name))}
-            <h2>Shopping list based on meal selection and missing pantry items</h2>
-            {getNestedListDisplay(getShoppingList(selectedMeals, ingredients))}
+            <div>{ingredients2}</div>
         </div>
+        //
+        // <div>
+        //     <h2>Meals you can make with what you have on hand</h2>
+        //     {getListDisplay(possibleMeals)}
+        //     <h2>Meals you can make if you buy one ingredient</h2>
+        //     <ul>{getMissingIngredientDisplay(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients))}</ul>
+        //     <h2>Meals you've selected to generate your shopping list</h2>
+        //     {getListDisplay(selectedMeals.map(meal => meal.name))}
+        //     <h2>Shopping list based on meal selection and missing pantry items</h2>
+        //     {getNestedListDisplay(getShoppingList(selectedMeals, ingredients))}
+        // </div>
     );
 }
 
 initializeBlock(() => <TodoApp />);
+
 
 function getPossibleMeals(mealIdeas, ingredients) {
     const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
@@ -103,6 +122,44 @@ function getListDisplay(list) {
         );
     })}</ul>
 }
+
+
+
+function Item({record, onToggle, completedFieldId}) {
+    const label = record.name || 'Unnamed ingredient';
+    return (
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: 12,
+                padding: 4,
+            }}
+        >
+            <TextButton
+                variant="dark"
+                size="xlarge"
+                onClick={() => {
+                    onToggle(record);
+                }}
+            >
+                {record.getCellValue(completedFieldId) ? <s>{label}</s> : label}
+            </TextButton>
+            <TextButton
+                icon="expand"
+                aria-label="Expand record"
+                variant="dark"
+                onClick={() => {
+                    expandRecord(record);
+                }}
+            />
+        </div>
+
+    );
+
+}
+
 
 // TODO: Organize list by aisle of the grocery store?
 // TODO: Add meal ideas from friends
