@@ -79,7 +79,7 @@ function getShoppingList(selectedMeals, ingredients) {
         .filter(pantryItem => pantryItem.getCellValue("On hand") !== true);
 
     const finalShoppingList = [...new Set(recipeIngredients.filter(item => ingredientsNotOnHand.map(ingredient => ingredient.name).includes(item.name)).concat(missingPantryItems))];
-    return finalShoppingList;
+    return finalShoppingList.sort((a,b) => a.name > b.name);
 }
 
 function categorizeShoppingList(shoppingList) {
