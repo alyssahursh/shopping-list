@@ -10,20 +10,23 @@ function TodoApp() {
     const base = useBase();
     const mealIdeas = useRecords(base.getTableByNameIfExists('Meal Ideas'));
     const ingredients = useRecords(base.getTableByNameIfExists('Ingredients'));
-    const completedFieldId = "On hand";
+    const onHand = "On hand";
+    const planned = "Plan";
 
     const selectedMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Plan") == true);
     const possibleMeals = getPossibleMeals(mealIdeas, ingredients);
 
-    const toggle = (record) => {
+    const toggleOnHand = (record) => {
         base.getTableByNameIfExists('Ingredients').updateRecordAsync(
-            record, {[completedFieldId]: !record.getCellValue(completedFieldId)}
+            record, {[onHand]: !record.getCellValue(onHand)}
         );
     };
 
-    const shoppingList = ingredients ? getShoppingList(selectedMeals, ingredients).map(ingredient => {
-        return <Item key={ingredient.id} record={ingredient} onToggle={toggle} completedFieldId={completedFieldId}/>;
-    }) : null;
+    const togglePlannedMeal = (record) => {
+        base.getTableByNameIfExists('Meal Ideas').updateRecordAsync(
+            record, {[planned]: !record.getCellValue(planned)}
+        );
+    };
 
     const getCategorizedList = (selectedMeals, ingredients) => {
         const shoppingList = getShoppingList(selectedMeals, ingredients);
@@ -34,15 +37,23 @@ function TodoApp() {
             console.log(value.map(item => item.name));
             itemList.push( <Category category={key}/> );
             const ingredientsList = value.sort((a,b) => a.name > b.name).map(ingredient => {
-                return <Item key={ingredient.id} record={ingredient} onToggle={toggle} completedFieldId={completedFieldId}/>;
+                return <Item key={ingredient.id} record={ingredient} onToggle={toggleOnHand} completedFieldId={onHand}/>;
             })
             itemList.push(ingredientsList);
         });
         return itemList;
     };
 
+    const getPlannedMeals = (selectedMeals) => {
+        return selectedMeals.map(meal => {
+            return <Item key={meal.id} record={meal} onToggle={togglePlannedMeal} completedFieldId={planned}/>;
+        })
+    }
+
     return (
         <div>
+            <Section title="Planned Meals"/>
+            <div>{getPlannedMeals(selectedMeals)}</div>
             <Section title="Shopping List"/>
             <div>{getCategorizedList(selectedMeals, ingredients)}</div>
 
@@ -147,6 +158,7 @@ function Section({title}) {
                 fontSize: 20,
                 padding: 10,
                 fontWeight: 'bold',
+                borderTop: '1px solid #ddd',
                 borderBottom: '1px solid #ddd',
                 backgroundColor: '#FAFAFA',
             }}
@@ -193,7 +205,7 @@ function Item({record, onToggle, completedFieldId}) {
                     onToggle(record);
                 }}
             >
-                {record.getCellValue(completedFieldId) ? <s>{label}</s> : label}
+                {label}
             </TextButton>
             <div
                 style={{
