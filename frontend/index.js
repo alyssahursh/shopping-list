@@ -21,7 +21,7 @@ function TodoApp() {
         );
     };
 
-    const ingredients2 = ingredients ? ingredients.map(ingredient => {
+    const shoppingList = ingredients ? getShoppingList(selectedMeals, ingredients).map(ingredient => {
         return <Item key={ingredient.id} record={ingredient} onToggle={toggle} completedFieldId={completedFieldId}/>;
     }) : null;
 
@@ -29,7 +29,7 @@ function TodoApp() {
 
     return (
         <div>
-            <div>{ingredients2}</div>
+            <div>{shoppingList}</div>
         </div>
         //
         // <div>
@@ -70,18 +70,16 @@ function getPossibleMealsWithMissingIngredients(mealIdeas, ingredients) {
 }
 
 function getShoppingList(selectedMeals, ingredients) {
-    const tentativeShoppingList = [...new Set(selectedMeals.flatMap(record => record.getCellValue("Ingredients")
-        .map(item => item.name)))]
+    const recipeIngredientNames = new Set(selectedMeals.flatMap(record => record.getCellValue("Ingredients")).map(record => record.name));
+    const recipeIngredients = ingredients.filter(ingredient => recipeIngredientNames.has(ingredient.name));
 
-    const ingredientsOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") == true);
+    const ingredientsNotOnHand = ingredients.filter(ingredient => ingredient.getCellValue("On hand") !== true);
 
     const missingPantryItems = ingredients.filter(pantryItem => pantryItem.getCellValue("Refill when empty") == true)
-        .filter(pantryItem => pantryItem.getCellValue("On hand") !== true)
-        .map(pantryItem => pantryItem.name);
+        .filter(pantryItem => pantryItem.getCellValue("On hand") !== true);
 
-    const finalShoppingList = [...new Set(tentativeShoppingList.filter(item => !ingredientsOnHand.map(ingredient => ingredient.name).includes(item)).concat(missingPantryItems))];
-
-    return categorizeShoppingList(finalShoppingList, ingredients);
+    const finalShoppingList = [...new Set(recipeIngredients.filter(item => ingredientsNotOnHand.map(ingredient => ingredient.name).includes(item.name)).concat(missingPantryItems))];
+    return finalShoppingList;
 }
 
 function categorizeShoppingList(shoppingList, ingredients) {
@@ -134,7 +132,7 @@ function Item({record, onToggle, completedFieldId}) {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 fontSize: 12,
-                padding: 4,
+                padding: 2,
             }}
         >
             <TextButton
