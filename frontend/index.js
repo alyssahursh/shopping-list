@@ -14,6 +14,7 @@ function TodoApp() {
     const planned = "Plan";
 
     const selectedMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Plan") == true);
+    const packingMeals = mealIdeas.filter(mealIdea => mealIdea.getCellValue("Pack Ingredients for Trip") == true);
     const possibleMeals = getPossibleMeals(mealIdeas, ingredients);
 
     const toggleOnHand = (record) => {
@@ -42,6 +43,21 @@ function TodoApp() {
         return itemList;
     };
 
+    const getCategorizedPackingList = (selectedMeals, ingredients) => {
+        const packingList = getPackingList(selectedMeals, ingredients);
+        const categorizedList = categorizeShoppingList(packingList);
+        let itemList = [];
+        Object.entries(categorizedList).sort((a,b) => a[0] > b[0]).forEach(([key, value]) => {
+            itemList.push( <Category category={key}/> );
+            const ingredientsList = value.sort((a,b) => a.name > b.name).map(ingredient => {
+                return <Item key={ingredient.id} record={ingredient} onToggle={() => {}}/>;
+            })
+            itemList.push(<div style={{padding: 6, marginLeft: 4}}>{ingredientsList}</div>);
+        });
+        return itemList;
+    };
+
+
     const getMeals = (selectedMeals) => {
         return selectedMeals.map(meal => {
             return <Item key={meal.id} record={meal} onToggle={togglePlannedMeal} completedFieldId={planned}/>;
@@ -54,6 +70,7 @@ function TodoApp() {
             <Section title="Meals That Only Need One Ingredient" content={getMeals(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients))}/>
             <Section title="Planned Meals" content={getMeals(selectedMeals)}/>
             <Section title="Shopping List" content={getCategorizedShoppingList(selectedMeals, ingredients)}/>
+            <Section title="Packing List" content={getCategorizedPackingList(packingMeals, ingredients)}/>
         </div>
     );
 }
@@ -92,6 +109,16 @@ function getShoppingList(selectedMeals, ingredients) {
     const finalShoppingList = [...new Set(recipeIngredients.filter(item => ingredientsNotOnHand.map(ingredient => ingredient.name).includes(item.name)).concat(missingPantryItems))];
     return finalShoppingList.sort((a,b) => a.name > b.name);
 }
+
+function getPackingList(selectedMeals, ingredients) {
+    const recipeIngredientNames = new Set(selectedMeals.flatMap(record => record.getCellValue("Ingredients")).map(record => record.name));
+    const recipeIngredients = ingredients.filter(ingredient => recipeIngredientNames.has(ingredient.name));
+    const extraIngredients = ingredients.filter(ingredient => ingredient.getCellValue("Pack Ingredient for Trip") == true);
+    const finalPackingList = [...new Set(recipeIngredients.concat(extraIngredients))];
+
+    return finalPackingList.sort((a,b) => a.name > b.name);
+}
+
 
 function categorizeShoppingList(shoppingList) {
     return shoppingList.reduce((categorizedList, currentValue) => {
