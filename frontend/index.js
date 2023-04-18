@@ -29,6 +29,15 @@ function TodoApp() {
         );
     };
 
+    const showHide = (name) => {
+        var section = document.getElementById(name);
+        if (section.style.display === "none") {
+            section.style.display = "block";
+        } else {
+            section.style.display = "none";
+        }
+    }
+
     const getCategorizedShoppingList = (selectedMeals, ingredients) => {
         const shoppingList = getShoppingList(selectedMeals, ingredients);
         const categorizedList = categorizeShoppingList(shoppingList);
@@ -66,11 +75,11 @@ function TodoApp() {
 
     return (
         <div>
-            <Section title="Meals You Can Make Now" content={getMeals(possibleMeals)}/>
-            <Section title="Meals That Only Need One Ingredient" content={getMeals(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients))}/>
-            <Section title="Planned Meals" content={getMeals(selectedMeals)}/>
-            <Section title="Shopping List" content={getCategorizedShoppingList(selectedMeals, ingredients)}/>
-            <Section title="Packing List" content={getCategorizedPackingList(packingMeals, ingredients)}/>
+            <Section name="make-now" title="Meals You Can Make Now" content={getMeals(possibleMeals)} onToggle={showHide}/>
+            <Section name="one-ingredient" title="Meals That Only Need One Ingredient" content={getMeals(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients))} onToggle={showHide}/>
+            <Section name="planned-meals" title="Planned Meals" content={getMeals(selectedMeals)} onToggle={showHide}/>
+            <Section name="shopping-list" title="Shopping List" content={getCategorizedShoppingList(selectedMeals, ingredients)} onToggle={showHide}/>
+            <Section name="packing-list" title="Packing List" content={getCategorizedPackingList(packingMeals, ingredients)} onToggle={showHide}/>
         </div>
     );
 }
@@ -130,7 +139,7 @@ function categorizeShoppingList(shoppingList) {
     }, {})
 }
 
-function Section({title, content}) {
+function Section({name, title, content, onToggle}) {
     return (
         <div>
             <div
@@ -145,14 +154,16 @@ function Section({title, content}) {
                     borderBottom: '1px solid #ddd',
                     backgroundColor: '#FAFAFA',
                 }}
+                onClick={() => {
+                    onToggle(name);
+                }}
             >
                 {title}
             </div>
-            <div
-                style={{
-                    padding: 18,
-                }}
-            >
+            <div 
+                id={name}
+                style={{padding: 18,}}
+                >
                 {content}
             </div>
         </div>
