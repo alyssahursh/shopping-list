@@ -38,6 +38,20 @@ function TodoApp() {
         }
     }
 
+    const getAisleShoppingList = (selectedMeals, ingredients, store) => {
+        const shoppingList = getShoppingList(selectedMeals, ingredients);
+        const aisleList = organizeListByAisle(shoppingList, store);
+        let itemList = [];
+        Object.entries(aisleList).sort((a,b) => a[0] > b[0]).forEach(([key, value]) => {
+            itemList.push( <Category category={key}/> );
+            const ingredientsList = value.sort((a,b) => a.name > b.name).map(ingredient => {
+                return <Item key={ingredient.id} record={ingredient} onToggle={toggleOnHand} completedFieldId={onHand}/>;
+            })
+            itemList.push(<div style={{padding: 6, marginLeft: 4}}>{ingredientsList}</div>);
+        });
+        return itemList;
+    }
+
     const getCategorizedShoppingList = (selectedMeals, ingredients) => {
         const shoppingList = getShoppingList(selectedMeals, ingredients);
         const categorizedList = categorizeShoppingList(shoppingList);
@@ -79,6 +93,9 @@ function TodoApp() {
             <Section name="one-ingredient" title="Meals That Only Need One Ingredient" content={getMeals(getPossibleMealsWithMissingIngredients(mealIdeas, ingredients))} onToggle={showHide}/>
             <Section name="planned-meals" title="Planned Meals" content={getMeals(selectedMeals)} onToggle={showHide}/>
             <Section name="shopping-list" title="Shopping List" content={getCategorizedShoppingList(selectedMeals, ingredients)} onToggle={showHide}/>
+            <Section name="fred-meyer-list" title="Fred Meyer List" content={getAisleShoppingList(selectedMeals, ingredients, "Fred Meyer")} onToggle={showHide}/>
+            <Section name="winco-list" title="Winco List" content={getAisleShoppingList(selectedMeals, ingredients, "Winco")} onToggle={showHide}/>
+            <Section name="new-seasons-list" title="New Seasons List" content={getAisleShoppingList(selectedMeals, ingredients, "New Seasons")} onToggle={showHide}/>
             <Section name="packing-list" title="Packing List" content={getCategorizedPackingList(packingMeals, ingredients)} onToggle={showHide}/>
         </div>
     );
@@ -138,6 +155,18 @@ function categorizeShoppingList(shoppingList) {
         return categorizedList;
     }, {})
 }
+
+
+function organizeListByAisle(shoppingList, store) {
+    return shoppingList.reduce((aisleList, currentValue) => {
+        const aisle = currentValue.getCellValue(store + " Aisle") == null ? 'Unknown' : currentValue.getCellValue(store + " Aisle").name;
+        aisleList[aisle] = [
+            currentValue, ...(aisleList[aisle] || [])
+        ];
+        return aisleList;
+    }, {})
+}
+
 
 function Section({name, title, content, onToggle}) {
     return (
